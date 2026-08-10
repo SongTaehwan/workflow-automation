@@ -22,4 +22,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - run: pnpm test
       - run: pnpm build   # tsc -b 를 포함하므로 typecheck 는 따로 돌리지 않는다
