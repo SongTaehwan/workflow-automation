@@ -1,12 +1,21 @@
 # push 대상 커밋이 없으면(HEAD 와 원격이 동일) lefthook 이 훅 전체를 건너뛴다.
 # 검사할 변경이 없는 경우라 문제 없음.
 # 훅 우회 플래그는 .claude/settings.json 의 deny 규칙이 막는다(에이전트 한정).
+# pre-push 는 ci.yml 의 lint-test-build 잡과 같은 검사를 돈다.
+# 한쪽만 고치면 push 후에야 실패를 알게 되므로 둘을 함께 유지한다.
 pre-push:
   parallel: true
   commands:
+    format:
+      run: pnpm format:check
     lint:
       run: pnpm lint
     test:
       run: pnpm test
     build:
       run: pnpm build
+
+pre-commit:
+  commands:
+    lint-staged:
+      run: pnpm exec lint-staged
