@@ -2,87 +2,62 @@
 
 앱 전역 초기화 레이어. 라우터, Provider 조합, 글로벌 스타일만 담는다.
 
-> 백엔드 비유: Spring의 `Application.java` + `WebMvcConfigurer` + `SecurityConfig` 조합.
-> 비즈니스 로직 없이 설정과 초기화만 있는 곳이다.
+아래 경로 중 일부는 아직 존재하지 않는다. 목표 구조를 전제로 작성됐다.
 
-## 이 레이어에 두는 것
+## 세그먼트 규약
 
-- QueryClient 인스턴스 등 앱 단위 설정 (`config/`)
-- React Router 라우트 정의 (`router/`)
-- 전역 Provider 조합 — QueryClient, Toaster 등 (`providers/`, 추가 예정)
-- 글로벌 CSS — CSS 변수, 폰트, reset (`theme/`)
+| 세그먼트     | 담는 것                                        |
+| ------------ | ---------------------------------------------- |
+| `config/`    | 앱 단위 인스턴스 생성. QueryClient, SDK 초기화 |
+| `router/`    | 라우트 정의만                                  |
+| `providers/` | 전역 Provider 조합                             |
+| `theme/`     | 글로벌 CSS. CSS 변수, 폰트, reset              |
 
-> 환경변수 파서(`env.ts`)는 app 이 아니라 `src/shared/config/` 에 있다 — 전 레이어가 import 해야 하는데 app 은 최상위라 하위가 import 못 하기 때문. 아래 "환경변수" 참조.
+- MUST: 앱 전체에서 정확히 한 번 실행되는 코드만 둔다.
+- MUST: 데이터 페칭은 `entities/<slice>/api/` 에 둔다. 라우트 정의에는 경로와 element 만 쓴다.
+- MUST: 비즈니스 로직은 `features/` 또는 `entities/` 에 둔다.
 
-## 현재 구조
+## 판단 기준
 
-```
-src/app/
-├── config/
-│   └── queryClient.ts  # TanStack QueryClient 인스턴스
-├── router/
-│   └── router.tsx      # React Router 라우트 정의
-└── theme/
-    └── index.css       # Tailwind + shadcn CSS 변수, Noto Sans 폰트
-```
+새 파일을 `app/` 에 두기 전에 두 질문에 모두 YES 여야 한다.
 
-## Import 규칙
+- 앱 전체에 딱 한 번 초기화되는 코드인가?
+- 특정 페이지나 기능에 종속되지 않는가?
 
-`app/`은 최상위 레이어로 모든 레이어를 import할 수 있다.
+하나라도 NO 면 `pages/`, `widgets/`, `features/` 중 적합한 레이어에 배치한다.
 
-```
-app → pages, widgets, features, entities, shared  ✅
-```
+`app` 은 최상위 레이어다. **하위 레이어가 `app` 을 import 할 수 없다.** 여러 레이어가 함께 써야 하는 코드는 `app` 이 아니라 `shared/` 에 둔다. 환경변수 파서(`env.ts`)와 ThemeProvider 가 `shared/` 에 있는 이유다.
 
-`app/` 내부 세그먼트 간 import는 자유롭다.
+## 환경변수
 
-## 환경변수 (env)
-
-env 파서는 `src/shared/config/env.ts` 에 있다 (app 아님 — 위 이유 참조). 모든 레이어가 `@/shared/config/env` 로 import 한다.
+- MUST: `@/shared/config/env` 의 `env` 객체로만 접근한다. `import.meta.env.VITE_*` 직접 참조는 금지다.
+- MUST: 타입은 `EnvSchema` 가 보장한다. `as string` 으로 캐스팅하지 않는다.
+- MUST: 환경변수를 추가할 때 `env.ts` 의 `EnvSchema` 에 필드를 먼저 추가한다.
 
 ```ts
+// 위반: 타입 보장 없음, 누락을 런타임에야 발견
+const baseUrl = import.meta.env.VITE_API_BASE_URL as string;
+
+// 정상: 타입 보장, 누락 시 앱 시작 전 throw
 import { env } from '@/shared/config/env';
-
-env.VITE_API_BASE_URL; // 타입 보장, 누락 시 앱 시작 전 throw
+const baseUrl = env.VITE_API_BASE_URL;
 ```
 
-환경변수를 추가할 때 `env.ts`의 `EnvSchema`에 필드를 추가한다.  
-`as string` 캐스팅이나 `import.meta.env.VITE_*` 직접 참조는 금지다.
-
-## 체크리스트
-
-새 파일을 만들기 전에:
-
-- [ ] 앱 전체에 딱 한 번 초기화되는 코드인가?
-- [ ] 특정 페이지나 기능에 종속되지 않는가?
-
-NO라면 `pages/`, `widgets/`, `features/` 중 적합한 레이어에 배치한다.
-
-## 흔한 실수
+## 코드 예시
 
 ```ts
-// ❌ app/router에서 데이터 페칭
+// 위반: 라우트 정의가 데이터 페칭을 소유
 const router = createBrowserRouter([
   {
     path: '/orders',
     element: <OrdersPage />,
-    loader: async () => {
-      const orders = await fetchOrders(); // → entities/order/api 로
-      return orders;
-    },
+    loader: async () => fetchOrders(),
   },
 ]);
 
-// ✅ 라우트 정의만. 데이터 페칭은 페이지 컴포넌트 내부에서
+// 정상: 라우트 정의만. 페칭은 페이지 컴포넌트 내부에서
 const router = createBrowserRouter([
   { path: '/orders', element: <OrdersPage /> },
   { path: '/login', element: <LoginPage /> },
 ]);
-
-// ❌ 환경변수 직접 참조
-const baseUrl = import.meta.env.VITE_API_BASE_URL as string;
-
-// ✅ env 객체 사용
-import { env } from '@/shared/config/env';
-const baseUrl = env.VITE_API_BASE_URL;
 ```

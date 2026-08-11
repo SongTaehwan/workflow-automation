@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>workflow-automation — Mechanized Rules Architecture</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        min-height: 100vh;
+        padding: 2rem;
+        background: #020617;
+        color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .container {
+        max-width: 1440px;
+        margin: 0 auto;
+      }
+      .header {
+        margin-bottom: 2rem;
+      }
+      .header-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .pulse-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #22d3ee;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+      h1 {
+        font-size: 1.5rem;
+        letter-spacing: -0.025em;
+      }
+      .subtitle {
+        margin-left: 1.75rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+      }
+      .diagram-container,
+      .card {
+        border: 1px solid #1e293b;
+        background: rgba(15, 23, 42, 0.5);
+      }
+      .diagram-container {
+        overflow-x: auto;
+        border-radius: 1rem;
+        padding: 1.5rem;
+      }
+      svg {
+        display: block;
+        min-width: 1240px;
+        width: 100%;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+      .card {
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .card-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .cyan {
+        background: #22d3ee;
+      }
+      .emerald {
+        background: #34d399;
+      }
+      .violet {
+        background: #a78bfa;
+      }
+      .card h3 {
+        font-size: 0.875rem;
+      }
+      .card ul {
+        color: #94a3b8;
+        font-size: 0.75rem;
+        line-height: 1.65;
+        list-style: none;
+      }
+      .footer {
+        margin-top: 1.5rem;
+        color: #475569;
+        font-size: 0.75rem;
+        text-align: center;
+      }
+      @media (max-width: 800px) {
+        body {
+          padding: 1rem;
+        }
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <div class="header-row">
+          <span class="pulse-dot"></span>
+          <h1>workflow-automation · Mechanized Rules Architecture</h1>
+        </div>
+        <p class="subtitle">
+          FSD 의존 구조와 품질 harness가 서로 다른 시점에서 같은 아키텍처 제약을
+          방어하는 흐름
+        </p>
+      </header>
+
+      <section
+        class="diagram-container"
+        aria-label="FSD architecture and quality harness diagram"
+      >
+        <svg viewBox="0 0 1360 920" role="img">
+          <defs>
+            <marker
+              id="arrow-slate"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+            </marker>
+            <marker
+              id="arrow-cyan"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee" />
+            </marker>
+            <marker
+              id="arrow-emerald"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#34d399" />
+            </marker>
+            <marker
+              id="arrow-rose"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185" />
+            </marker>
+            <pattern
+              id="grid"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="#1e293b"
+                stroke-width=".5"
+              />
+            </pattern>
+          </defs>
+          <rect width="1360" height="920" fill="url(#grid)" />
+
+          <!-- Arrows first: connectors remain behind opaque masks. -->
+          <path
+            d="M 152 173 L 190 173"
+            fill="none"
+            stroke="#22d3ee"
+            stroke-width="1.5"
+            marker-end="url(#arrow-cyan)"
+          />
+          <path
+            d="M 332 173 L 370 173"
+            fill="none"
+            stroke="#22d3ee"
+            stroke-width="1.5"
+            marker-end="url(#arrow-cyan)"
+          />
+          <path
+            d="M 512 173 L 550 173"
+            fill="none"
+            stroke="#22d3ee"
+            stroke-width="1.5"
+            marker-end="url(#arrow-cyan)"
+          />
+          <path
+            d="M 692 173 L 730 173"
+            fill="none"
+            stroke="#22d3ee"
+            stroke-width="1.5"
+            marker-end="url(#arrow-cyan)"
+          />
+          <path
+            d="M 872 173 L 910 173"
+            fill="none"
+            stroke="#22d3ee"
+            stroke-width="1.5"
+            marker-end="url(#arrow-cyan)"
+          />
+          <path
+            d="M 1052 173 L 1090 173"
+            fill="none"
+            stroke="#22d3ee"
+            stroke-width="1.5"
+            marker-end="url(#arrow-cyan)"
+          />
+          <path
+            d="M 800 274 L 800 318"
+            fill="none"
+            stroke="#fb7185"
+            stroke-width="1.5"
+            stroke-dasharray="5 5"
+            marker-end="url(#arrow-rose)"
+          />
+          <path
+            d="M 800 416 L 800 460"
+            fill="none"
+            stroke="#34d399"
+            stroke-width="1.5"
+            marker-end="url(#arrow-emerald)"
+          />
+          <path
+            d="M 800 558 L 800 602"
+            fill="none"
+            stroke="#fbbf24"
+            stroke-width="1.5"
+            marker-end="url(#arrow-slate)"
+          />
+          <path
+            d="M 800 700 L 800 744"
+            fill="none"
+            stroke="#fb7185"
+            stroke-width="1.5"
+            stroke-dasharray="5 5"
+            marker-end="url(#arrow-rose)"
+          />
+          <path
+            d="M 500 525 C 600 525 615 485 680 485"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="1.25"
+            stroke-dasharray="4 4"
+            marker-end="url(#arrow-slate)"
+          />
+          <path
+            d="M 500 650 C 590 650 610 650 680 650"
+            fill="none"
+            stroke="#a78bfa"
+            stroke-width="1.25"
+            stroke-dasharray="4 4"
+            marker-end="url(#arrow-slate)"
+          />
+
+          <!-- Architecture boundary -->
+          <rect
+            x="24"
+            y="28"
+            width="1232"
+            height="250"
+            rx="12"
+            fill="rgba(251,191,36,.05)"
+            stroke="#fbbf24"
+            stroke-width="1"
+            stroke-dasharray="8 4"
+          />
+          <text x="40" y="52" fill="#fbbf24" font-size="10" font-weight="600">
+            APPLICATION ARCHITECTURE · src/ (FSD)
+          </text>
+          <text x="40" y="73" fill="#94a3b8" font-size="8">
+            의존은 왼쪽 → 오른쪽만 허용 · eslint-plugin-boundaries가
+            역방향/미분류 파일을 error로 차단
+          </text>
+
+          <!-- FSD component masks and styles -->
+          <g>
+            <rect
+              x="40"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="40"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(8,51,68,.4)"
+              stroke="#22d3ee"
+              stroke-width="1.5"
+            />
+            <text
+              x="96"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              app
+            </text>
+            <text
+              x="96"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              bootstrap · router
+            </text>
+            <text
+              x="96"
+              y="197"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              Provider
+            </text>
+            <rect
+              x="220"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="220"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(8,51,68,.4)"
+              stroke="#22d3ee"
+              stroke-width="1.5"
+            />
+            <text
+              x="276"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              pages
+            </text>
+            <text
+              x="276"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              route screen
+            </text>
+            <text
+              x="276"
+              y="197"
+              fill="#fb7185"
+              font-size="7"
+              text-anchor="middle"
+            >
+              SDK direct import 금지
+            </text>
+            <rect
+              x="400"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="400"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(8,51,68,.4)"
+              stroke="#22d3ee"
+              stroke-width="1.5"
+            />
+            <text
+              x="456"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              widgets
+            </text>
+            <text
+              x="456"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              independent UI
+            </text>
+            <rect
+              x="580"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="580"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(6,78,59,.4)"
+              stroke="#34d399"
+              stroke-width="1.5"
+            />
+            <text
+              x="636"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              features
+            </text>
+            <text
+              x="636"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              user action
+            </text>
+            <text
+              x="636"
+              y="197"
+              fill="#fb923c"
+              font-size="7"
+              text-anchor="middle"
+            >
+              write · mutation
+            </text>
+            <rect
+              x="760"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="760"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(76,29,149,.4)"
+              stroke="#a78bfa"
+              stroke-width="1.5"
+            />
+            <text
+              x="816"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              entities
+            </text>
+            <text
+              x="816"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              domain · read
+            </text>
+            <text
+              x="816"
+              y="197"
+              fill="#fb7185"
+              font-size="7"
+              text-anchor="middle"
+            >
+              mutation 금지
+            </text>
+            <rect
+              x="940"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="940"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(76,29,149,.4)"
+              stroke="#a78bfa"
+              stroke-width="1.5"
+            />
+            <text
+              x="996"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              shared
+            </text>
+            <text
+              x="996"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              domain agnostic
+            </text>
+            <rect
+              x="1120"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="1120"
+              y="136"
+              width="112"
+              height="74"
+              rx="6"
+              fill="rgba(30,41,59,.5)"
+              stroke="#94a3b8"
+              stroke-width="1.5"
+            />
+            <text
+              x="1176"
+              y="164"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              public API
+            </text>
+            <text
+              x="1176"
+              y="184"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              slice barrel
+            </text>
+            <text
+              x="1176"
+              y="197"
+              fill="#fb7185"
+              font-size="7"
+              text-anchor="middle"
+            >
+              deep import 금지
+            </text>
+          </g>
+
+          <!-- Quality harness boundary -->
+          <rect
+            x="630"
+            y="300"
+            width="340"
+            height="430"
+            rx="12"
+            fill="rgba(251,191,36,.05)"
+            stroke="#fbbf24"
+            stroke-width="1"
+            stroke-dasharray="8 4"
+          />
+          <text x="648" y="324" fill="#fbbf24" font-size="10" font-weight="600">
+            QUALITY HARNESS · enforcement timeline
+          </text>
+
+          <g>
+            <rect
+              x="680"
+              y="318"
+              width="240"
+              height="98"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="680"
+              y="318"
+              width="240"
+              height="98"
+              rx="6"
+              fill="rgba(8,51,68,.4)"
+              stroke="#22d3ee"
+              stroke-width="1.5"
+            />
+            <text
+              x="800"
+              y="344"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              ① Editor / dev server
+            </text>
+            <text
+              x="800"
+              y="365"
+              fill="#94a3b8"
+              font-size="9"
+              text-anchor="middle"
+            >
+              .editorconfig · vite-plugin-checker
+            </text>
+            <text
+              x="800"
+              y="382"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              TypeScript + ESLint overlay
+            </text>
+            <text
+              x="800"
+              y="399"
+              fill="#22d3ee"
+              font-size="8"
+              text-anchor="middle"
+            >
+              즉시 피드백 · 선택적 준수
+            </text>
+            <rect
+              x="680"
+              y="460"
+              width="240"
+              height="98"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="680"
+              y="460"
+              width="240"
+              height="98"
+              rx="6"
+              fill="rgba(6,78,59,.4)"
+              stroke="#34d399"
+              stroke-width="1.5"
+            />
+            <text
+              x="800"
+              y="486"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              ② Commit
+            </text>
+            <text
+              x="800"
+              y="507"
+              fill="#94a3b8"
+              font-size="9"
+              text-anchor="middle"
+            >
+              lefthook pre-commit → lint-staged
+            </text>
+            <text
+              x="800"
+              y="524"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              eslint --fix · prettier --write
+            </text>
+            <text
+              x="800"
+              y="541"
+              fill="#34d399"
+              font-size="8"
+              text-anchor="middle"
+            >
+              검증이 아닌 자동 교정
+            </text>
+            <rect
+              x="680"
+              y="602"
+              width="240"
+              height="98"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="680"
+              y="602"
+              width="240"
+              height="98"
+              rx="6"
+              fill="rgba(120,53,15,.3)"
+              stroke="#fbbf24"
+              stroke-width="1.5"
+            />
+            <text
+              x="800"
+              y="628"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              ③ Push
+            </text>
+            <text
+              x="800"
+              y="649"
+              fill="#94a3b8"
+              font-size="9"
+              text-anchor="middle"
+            >
+              lefthook pre-push · parallel gate
+            </text>
+            <text
+              x="800"
+              y="666"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              format:check · lint · test · build
+            </text>
+            <text
+              x="800"
+              y="683"
+              fill="#fbbf24"
+              font-size="8"
+              text-anchor="middle"
+            >
+              로컬 차단 · 우회 가능
+            </text>
+          </g>
+
+          <!-- CI & merge -->
+          <g>
+            <rect
+              x="680"
+              y="744"
+              width="240"
+              height="98"
+              rx="6"
+              fill="#0f172a"
+            />
+            <rect
+              x="680"
+              y="744"
+              width="240"
+              height="98"
+              rx="6"
+              fill="rgba(136,19,55,.4)"
+              stroke="#fb7185"
+              stroke-width="1.5"
+            />
+            <text
+              x="800"
+              y="770"
+              fill="white"
+              font-size="12"
+              font-weight="600"
+              text-anchor="middle"
+            >
+              ④ CI → ⑤ Merge
+            </text>
+            <text
+              x="800"
+              y="791"
+              fill="#94a3b8"
+              font-size="9"
+              text-anchor="middle"
+            >
+              GitHub Actions · ruleset (main)
+            </text>
+            <text
+              x="800"
+              y="808"
+              fill="#94a3b8"
+              font-size="8"
+              text-anchor="middle"
+            >
+              lint-test-build · required-sections
+            </text>
+            <text
+              x="800"
+              y="825"
+              fill="#fb7185"
+              font-size="8"
+              text-anchor="middle"
+            >
+              필수 체크 · bypass_actors: []
+            </text>
+          </g>
+
+          <!-- policy nodes -->
+          <g>
+            <rect
+              x="86"
+              y="430"
+              width="414"
+              height="190"
+              rx="8"
+              fill="#0f172a"
+            />
+            <rect
+              x="86"
+              y="430"
+              width="414"
+              height="190"
+              rx="8"
+              fill="rgba(6,78,59,.4)"
+              stroke="#34d399"
+              stroke-width="1.5"
+            />
+            <text x="108" y="458" fill="white" font-size="12" font-weight="600">
+              Static policy engine · ESLint flat config
+            </text>
+            <text x="108" y="484" fill="#94a3b8" font-size="9">
+              Boundaries: FSD direction · same-slice only · unknown files
+            </text>
+            <text x="108" y="505" fill="#94a3b8" font-size="9">
+              Public API: slice deep import / httpClient re-export 차단
+            </text>
+            <text x="108" y="526" fill="#94a3b8" font-size="9">
+              Segments: api/model/ui 책임, entities read-only
+            </text>
+            <text x="108" y="547" fill="#94a3b8" font-size="9">
+              Hygiene: TS strictness · hooks · imports · naming
+            </text>
+            <text x="108" y="582" fill="#34d399" font-size="8">
+              구조·로직의 기계적 판정 — error (TanStack 위치만 warn)
+            </text>
+          </g>
+          <g>
+            <rect
+              x="86"
+              y="650"
+              width="414"
+              height="150"
+              rx="8"
+              fill="#0f172a"
+            />
+            <rect
+              x="86"
+              y="650"
+              width="414"
+              height="150"
+              rx="8"
+              fill="rgba(76,29,149,.4)"
+              stroke="#a78bfa"
+              stroke-width="1.5"
+            />
+            <text x="108" y="678" fill="white" font-size="12" font-weight="600">
+              Complementary verifiers
+            </text>
+            <text x="108" y="704" fill="#94a3b8" font-size="9">
+              Prettier + Tailwind plugin: format/class ordering (ESLint conflict
+              off)
+            </text>
+            <text x="108" y="725" fill="#94a3b8" font-size="9">
+              tsc -b in build: strict type safety (app + Vite config)
+            </text>
+            <text x="108" y="746" fill="#94a3b8" font-size="9">
+              Vitest / V8 coverage: behavioral regression harness
+            </text>
+            <text x="108" y="779" fill="#a78bfa" font-size="8">
+              각 도구가 하나의 실패 원인만 보고하도록 분리
+            </text>
+          </g>
+
+          <!-- legend below all boundaries -->
+          <g transform="translate(1010 324)">
+            <text x="0" y="0" fill="white" font-size="10" font-weight="600">
+              Legend
+            </text>
+            <rect
+              x="0"
+              y="14"
+              width="16"
+              height="10"
+              rx="2"
+              fill="rgba(8,51,68,.4)"
+              stroke="#22d3ee"
+            />
+            <text x="23" y="23" fill="#94a3b8" font-size="8">
+              application / feedback
+            </text>
+            <rect
+              x="0"
+              y="34"
+              width="16"
+              height="10"
+              rx="2"
+              fill="rgba(6,78,59,.4)"
+              stroke="#34d399"
+            />
+            <text x="23" y="43" fill="#94a3b8" font-size="8">
+              policy / auto-fix
+            </text>
+            <rect
+              x="0"
+              y="54"
+              width="16"
+              height="10"
+              rx="2"
+              fill="rgba(76,29,149,.4)"
+              stroke="#a78bfa"
+            />
+            <text x="23" y="63" fill="#94a3b8" font-size="8">
+              type / test verifier
+            </text>
+            <rect
+              x="0"
+              y="74"
+              width="16"
+              height="10"
+              rx="2"
+              fill="rgba(120,53,15,.3)"
+              stroke="#fbbf24"
+            />
+            <text x="23" y="83" fill="#94a3b8" font-size="8">
+              gate / boundary
+            </text>
+            <rect
+              x="0"
+              y="94"
+              width="16"
+              height="10"
+              rx="2"
+              fill="rgba(136,19,55,.4)"
+              stroke="#fb7185"
+            />
+            <text x="23" y="103" fill="#94a3b8" font-size="8">
+              authoritative enforcement
+            </text>
+            <line
+              x1="0"
+              y1="122"
+              x2="16"
+              y2="122"
+              stroke="#fb7185"
+              stroke-dasharray="3 3"
+            />
+            <text x="23" y="125" fill="#94a3b8" font-size="8">
+              guarded / bypass concern
+            </text>
+          </g>
+        </svg>
+      </section>
+
+      <section class="cards" aria-label="diagram notes">
+        <article class="card">
+          <div class="card-header">
+            <span class="card-dot cyan"></span>
+            <h3>아키텍처를 룰로 번역</h3>
+          </div>
+          <ul>
+            <li>• FSD 레이어 방향과 slice 격리를 boundaries가 검사</li>
+            <li>• public API 외 내부 import를 금지해 결합을 제한</li>
+            <li>• api / model / ui의 책임을 경로별 룰로 고정</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-header">
+            <span class="card-dot emerald"></span>
+            <h3>로컬 개발 harness</h3>
+          </div>
+          <ul>
+            <li>• dev overlay는 빠른 피드백 전용</li>
+            <li>• commit은 staged 파일을 자동 교정</li>
+            <li>• push는 CI와 같은 4종 검사를 병렬 실행</li>
+          </ul>
+        </article>
+        <article class="card">
+          <div class="card-header">
+            <span class="card-dot violet"></span>
+            <h3>권위 있는 최종 판정</h3>
+          </div>
+          <ul>
+            <li>• CI는 format, lint, test, build를 순서대로 검증</li>
+            <li>• PR 본문은 별도 required-sections job으로 검사</li>
+            <li>• main ruleset이 두 status check를 merge 조건으로 강제</li>
+          </ul>
+        </article>
+      </section>
+      <p class="footer">
+        Sources: eslint.config.js · vite.config.ts · lefthook.yml ·
+        .github/workflows/*.yml · docs/rules-map.md
+      </p>
+    </main>
+  </body>
+</html>
