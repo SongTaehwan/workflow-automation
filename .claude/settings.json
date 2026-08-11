@@ -4,8 +4,6 @@
     "commit": ""
   },
   "permissions": {
-    "deny": [
-      "Bash(*git*--no-ver*)"
-    ]
+    "deny": ["Bash(*git*--no-ver*)"]
   }
 }

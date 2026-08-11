@@ -1,7 +1,7 @@
-node_modules/
+# dist/·node_modules 등은 .gitignore 로 이미 제외된다(Prettier 3 기본 ignore path).
+# 여기엔 .gitignore 가 덮지 않는 것만 적는다.
 coverage/
 .pnpm-store/
 pnpm-lock.yaml
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
