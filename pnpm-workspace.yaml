@@ -1,6 +1,12 @@
 packages: []
 
+# package.json 의 engines 를 경고가 아니라 설치 실패로 강제한다.
+# pnpm 10+ 는 .npmrc 의 engine-strict 를 읽지 않는다 — 이 키가 유일하게 동작한다.
+# 모르는 키는 조용히 무시되므로(strictEngines 등 오타 주의) 바꿀 땐 실패 케이스로 검증할 것.
+engineStrict: true
+
 allowBuilds:
   esbuild: true
   lefthook: true
   msw: false
+  unrs-resolver: true
