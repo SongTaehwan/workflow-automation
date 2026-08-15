@@ -9,6 +9,8 @@ export const phaseStatusTone: Record<
     badge: string;
     leftBorder: string;
     hoverBorder: string;
+    flowStroke: string;
+    flowFill: string;
   }
 > = {
   [PhaseStatus.COMPLETED]: {
@@ -17,6 +19,8 @@ export const phaseStatusTone: Record<
     badge: 'border-emerald-400/60 bg-emerald-900/40 text-emerald-300',
     leftBorder: 'border-l-emerald-400/60',
     hoverBorder: 'hover:border-emerald-400/60',
+    flowStroke: 'stroke-emerald-400',
+    flowFill: 'fill-emerald-400',
   },
   [PhaseStatus.RUNNING]: {
     label: '실제 실행 대상',
@@ -24,6 +28,8 @@ export const phaseStatusTone: Record<
     badge: 'border-cyan-400/60 bg-cyan-950/50 text-cyan-300',
     leftBorder: 'border-l-cyan-400/60',
     hoverBorder: 'hover:border-cyan-400/60',
+    flowStroke: 'stroke-cyan-400',
+    flowFill: 'fill-cyan-400',
   },
   [PhaseStatus.PENDING]: {
     label: '첫 실제 Run 대기',
@@ -31,6 +37,8 @@ export const phaseStatusTone: Record<
     badge: 'border-amber-400/60 bg-amber-900/30 text-amber-300',
     leftBorder: 'border-l-amber-400/60',
     hoverBorder: 'hover:border-amber-400/60',
+    flowStroke: 'stroke-amber-400',
+    flowFill: 'fill-amber-400',
   },
 };
 

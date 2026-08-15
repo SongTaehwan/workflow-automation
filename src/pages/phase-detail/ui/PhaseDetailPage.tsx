@@ -1,12 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 
-import {
-  PhaseStatus,
-  PhaseStatusBadge,
-  findPhaseById,
-  phaseStatusTone,
-} from '@/entities/phase';
+import { PhaseStatus, PhaseStatusBadge, findPhaseById } from '@/entities/phase';
 import { GridBackdrop } from '@/shared/ui/grid-backdrop';
+
+import { PhaseWorkflowDiagram } from '../_components/PhaseWorkflowDiagram';
 
 function BackLink() {
   return (
@@ -59,36 +56,9 @@ export default function PhaseDetailPage() {
         </p>
       </header>
 
-      <p className="mb-6 rounded-lg border border-dashed border-amber-400/70 bg-amber-400/[0.035] px-4 py-3 text-[0.6875rem] font-bold text-amber-400">
-        {phase.boundary}
-      </p>
-
       <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-        <h2 className="mb-4 text-sm font-semibold">실행 경로</h2>
-        <ol className="flex flex-col gap-3">
-          {phase.steps.map((step, index) => {
-            const tone = phaseStatusTone[step.status];
-
-            return (
-              <li
-                key={step.id}
-                className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-l-2 border-slate-800 bg-slate-950/60 px-4 py-3 ${tone.leftBorder}`}
-              >
-                <span className="text-[0.6875rem] text-slate-600">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <span className={`size-2 rounded-full ${tone.dot}`} />
-                <span className="text-xs font-semibold">{step.name}</span>
-                <span className="rounded border border-slate-700 px-2 py-0.5 text-[0.625rem] text-slate-400">
-                  {step.role}
-                </span>
-                <span className="text-[0.6875rem] text-slate-400">
-                  {step.detail}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
+        <h2 className="mb-4 text-sm font-semibold">Workflow 구조</h2>
+        <PhaseWorkflowDiagram phase={phase} />
       </section>
 
       <section className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(290px,1fr))] gap-4">

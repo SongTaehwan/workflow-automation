@@ -155,6 +155,11 @@ export const phases: Phase[] = [
   },
 ];
 
+/** 목록 화면에 노출하는 Phase — 아직 착수하지 않은 PHASE 2 는 카드로 보여주지 않는다. */
+export const listedPhases: Phase[] = phases.filter(
+  (phase) => phase.id !== 'phase-2'
+);
+
 export function findPhaseById(phaseId: string): Phase | undefined {
   return phases.find((phase) => phase.id === phaseId);
 }

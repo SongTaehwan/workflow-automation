@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   PhaseStatus,
   PhaseStatusBadge,
+  listedPhases,
   phaseStatusTone,
-  phases,
 } from '@/entities/phase';
 import { GridBackdrop } from '@/shared/ui/grid-backdrop';
 
@@ -28,7 +28,7 @@ export default function PhaseListPage() {
       </header>
 
       <ul className="grid grid-cols-[repeat(auto-fit,minmax(290px,1fr))] gap-4">
-        {phases.map((phase) => {
+        {listedPhases.map((phase) => {
           const tone = phaseStatusTone[phase.status];
 
           return (
